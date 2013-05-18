@@ -4,7 +4,7 @@ $(document).ready(function () {
 
     'use strict';
 
-    new MusicBubbles({
+    window.bubbles = new MusicBubbles({
         $elem : $('.music-bubbles')
     });
 

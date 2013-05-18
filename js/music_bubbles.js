@@ -4,12 +4,14 @@
 
     'use strict';
 
+    var CyclicBackground;
+
     window.MusicBubbles = Class.create({
 
         initialize : function (options) {
             var defaults = {
                 width : 400,
-                height : 600
+                height : 300
             };
             this.options = $.extend(defaults, options);
             this.$elem = options.$elem;
@@ -26,32 +28,48 @@
         initializeElements : function () {
             this.paper = new Raphael(this.$elem[0], this.width, this.height);
 
-            this.background = this.paper.rect(0, 0, this.width, this.height);
-            this.background.attr({
-                fill: 'white',
-                'stroke-width': 0
-            });
-            this.backgroundAngle = Math.random();
+            this.background = new CyclicBackground({paper : this.paper});
         },
 
         animate : function () {
             var now = new Date(),
                 frameDiff = now - this.lastFrame;
 
-            this.updateBackground(frameDiff);
+            this.background.update(frameDiff);
 
             this.lastFrame = now;
             window.requestAnimationFrame(this._animate);
+        }
+
+    });
+
+    CyclicBackground = Class.create({
+
+        initialize : function (options) {
+            var defaults = {
+                cycleTime : 30 * 1000,  // 10 seconds
+                hue : Math.random(),
+                saturation : 0.75,
+                lightness : 0.75
+            };
+            options = $.extend(defaults, options);
+            $.extend(this, options);
+
+            this.rect = options.paper.rect(0, 0, options.paper.width, options.paper.height);
+            this.rect.attr({
+                fill: 'white',
+                'stroke-width': 0
+            });
         },
 
-        updateBackground : function (frameDiff) {
-            this.backgroundAngle += (frameDiff / 1000000);
-            while (this.backgroundAngle > 1) {
-                this.backgroundAngle -= Math.floor(this.backgroundAngle);
+        update : function (frameDiff) {
+            this.hue += (frameDiff / this.cycleTime);
+            while (this.hue > 1) {
+                this.hue -= Math.floor(this.hue);
             }
 
-            this.background.attr({
-                fill: Raphael.hsb(this.backgroundAngle, 0.75, 0.75)
+            this.rect.attr({
+                fill: Raphael.hsb(this.hue, this.saturation, this.lightness)
             });
         }
 
