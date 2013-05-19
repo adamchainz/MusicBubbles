@@ -99,9 +99,9 @@
             var filenames = ['a#2', 'c#3', 'd#3', 'f3', 'a#3', 'c#4', 'd#4', 'f4', 'a#4', 'c#5', 'd#5', 'f5'];
             this.sounds = [];
             for (var i = 0; i < filenames.length; i += 1) {
-                var filename = encodeURIComponent('audio/notes/' + filenames[i]);
+                var url = 'audio/notes/' + encodeURIComponent(filenames[i]);
                 this.sounds.push(
-                    new buzz.sound(filename, {
+                    new buzz.sound(url, {
                         formats: ['wav'],
                         preload: true
                     })
