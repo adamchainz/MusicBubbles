@@ -21,12 +21,12 @@
             options = $.extend(defaults, options);
             $.extend(this, options);
 
-            this.initializeElements();
-
-            this._animate = _.bind(this.animate, this);
             this.shouldAnimate = true;
             this.lastFrame = new Date();
-            this._animate();
+            this.initializeElements();
+
+            this.animate = _.bind(this.animate, this);
+            this.animate();
         },
 
         initializeElements : function () {
@@ -44,7 +44,7 @@
             this.bubbler.update(frameDiff);
 
             this.lastFrame = now;
-            requestAnimationFrame(this._animate);
+            requestAnimationFrame(this.animate);
         }
 
     });
