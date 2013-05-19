@@ -10,15 +10,15 @@
 
         initialize : function (options) {
             var defaults = {
+                $elem : undefined,
                 width : 400,
                 height : 300
             };
-            this.options = $.extend(defaults, options);
-            this.$elem = options.$elem;
-            this.width = this.options.width;
-            this.height = this.options.height;
+            options = $.extend(defaults, options);
+            $.extend(this, options);
 
             this.initializeElements();
+
             this._animate = _.bind(this.animate, this);
             this.shouldAnimate = true;
             this.lastFrame = new Date();
@@ -26,6 +26,7 @@
         },
 
         initializeElements : function () {
+            this.$elem.css('user-select', 'none');
             this.paper = new Raphael(this.$elem[0], this.width, this.height);
             this.background = new CyclicBackground({paper : this.paper});
             this.bubbler = new Bubbler({paper : this.paper});
@@ -80,6 +81,7 @@
 
         initialize : function (options) {
             var defaults = {
+                paper : undefined
             };
             options = $.extend(defaults, options);
             $.extend(this, options);
@@ -88,6 +90,7 @@
             this.bubbles = [];
 
             this.loadSounds();
+            this.bind();
         },
 
         loadSounds : function () {
@@ -104,22 +107,37 @@
             }
         },
 
+        bind : function () {
+            this.onClick = _.bind(this.onClick, this);
+            $(this.paper.canvas).on('click', this.onClick);
+        },
+
+        onClick : function (event) {
+            this.makeBubble(event.offsetX, event.offsetY);
+        },
+
         update : function (frameDiff) {
             this.timeSince += frameDiff;
 
             if (_.random(0, 100) === 24) {
-                this.makeNewBubble();
+                this.makeRandomBubble();
             }
 
             for (var i = 0; i < this.bubbles.length; i += 1) {
                 this.bubbles[i].update(frameDiff);
             }
+
+            this.bubbles = _.filter(this.bubbles, {alive: true});
         },
 
-        makeNewBubble : function () {
+        makeRandomBubble : function () {
             var x = _.random(0, this.paper.width),
-                y = _.random(0, this.paper.height),
-                sound = this.soundFor(x),
+                y = _.random(0, this.paper.height);
+            this.makeBubble(x, y);
+        },
+
+        makeBubble : function (x, y) {
+            var sound = this.soundFor(x),
                 bubble = new Bubble({
                     paper : this.paper,
                     sound : sound,
