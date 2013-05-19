@@ -148,28 +148,51 @@
                 x: 0,
                 y: 0,
                 fill: '#fff',
-                radius: 10
+                startRadius: 10,
+                stopRadius: 30,
+                duration: 1000,
+                startOpacity: 1.0,
+                stopOpacity: 0.0
             };
             options = $.extend(defaults, options);
             $.extend(this, options);
 
             this.created = new Date();
             this.timeAlive = 0;
+            this.alive = true;
+
             this.createElements();
         },
 
         createElements : function () {
             this.sound.stop().play();
-            this.circle = this.paper.circle(this.x, this.y, this.radius);
+            this.circle = this.paper.circle(this.x, this.y, this.startRadius);
             this.circle.attr({
                 'fill': this.fill,
+                'fill-opacity': this.startOpacity,
                 'stroke-width': 0
             });
-            window.tehcircle = this.circle;
         },
 
         update : function (frameDiff) {
             this.timeAlive += frameDiff;
+
+            if (this.timeAlive >= this.duration) {
+                this.alive = false;
+                this.circle.remove();
+                return;
+            }
+
+            var percentage = this.timeAlive / this.duration;
+
+            this.circle.attr({
+                r: this.interpolate(this.startRadius, this.stopRadius, percentage),
+                'fill-opacity': this.interpolate(this.startOpacity, this.stopOpacity, percentage)
+            });
+        },
+
+        interpolate : function (start, stop, percentage) {
+            return start + percentage * (stop - start);
         }
 
     });
