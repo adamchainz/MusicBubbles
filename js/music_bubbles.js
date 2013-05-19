@@ -81,13 +81,15 @@
 
         initialize : function (options) {
             var defaults = {
-                paper : undefined
+                paper : undefined,
+                tempo : 140
             };
             options = $.extend(defaults, options);
             $.extend(this, options);
 
-            this.timeSince = 0;
+            this.timeAlive = 0;
             this.bubbles = [];
+            this.lastMade = 0;
 
             this.loadSounds();
             this.bind();
@@ -114,26 +116,7 @@
 
         onClick : function (event) {
             this.makeBubble(event.offsetX, event.offsetY);
-        },
-
-        update : function (frameDiff) {
-            this.timeSince += frameDiff;
-
-            if (_.random(0, 100) === 24) {
-                this.makeRandomBubble();
-            }
-
-            for (var i = 0; i < this.bubbles.length; i += 1) {
-                this.bubbles[i].update(frameDiff);
-            }
-
-            this.bubbles = _.filter(this.bubbles, {alive: true});
-        },
-
-        makeRandomBubble : function () {
-            var x = _.random(0, this.paper.width),
-                y = _.random(0, this.paper.height);
-            this.makeBubble(x, y);
+            this.nextDuration = this.getNoteDuration();
         },
 
         makeBubble : function (x, y) {
@@ -146,6 +129,7 @@
                 });
 
             this.bubbles.push(bubble);
+            this.lastMade = this.timeAlive;
         },
 
         soundFor : function (x) {
@@ -153,6 +137,44 @@
                 (x / (this.paper.width + 1)) * this.sounds.length
             );
             return this.sounds[sel];
+        },
+
+        update : function (frameDiff) {
+            this.timeAlive += frameDiff;
+
+            this.playBubbles();
+
+            for (var i = 0; i < this.bubbles.length; i += 1) {
+                this.bubbles[i].update(frameDiff);
+            }
+
+            this.bubbles = _.filter(this.bubbles, {alive: true});
+        },
+
+        playBubbles : function () {
+            if (!this.nextDuration) {
+                this.nextDuration = this.getNoteDuration();
+            }
+
+            if ((this.timeAlive - this.lastMade) > this.nextDuration) {
+                this.makeRandomBubble();
+                this.nextDuration = this.getNoteDuration();
+            }
+        },
+
+        noteDurations : [0.25, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0, 2.0, 2.0, 4.0, 4.0, 4.0, 4.0],
+
+        getNoteDuration : function () {
+            var noteLength = this.noteDurations[_.random(this.noteDurations.length - 1)],
+                singleNoteLength = ((60 * 1000) / this.tempo);
+            return noteLength * singleNoteLength;
+
+        },
+
+        makeRandomBubble : function () {
+            var x = _.random(0, this.paper.width),
+                y = _.random(0, this.paper.height);
+            this.makeBubble(x, y);
         }
 
     });
