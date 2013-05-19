@@ -6,6 +6,10 @@
 
     var CyclicBackground, Bubbler, Bubble;
 
+    var requestAnimationFrame = window.requestAnimationFrame ||
+                                window.mozRequestAnimationFrame ||
+                                window.webkitRequestAnimationFrame;
+
     window.MusicBubbles = Class.create({
 
         initialize : function (options) {
@@ -40,7 +44,7 @@
             this.bubbler.update(frameDiff);
 
             this.lastFrame = now;
-            window.requestAnimationFrame(this._animate);
+            requestAnimationFrame(this._animate);
         }
 
     });
