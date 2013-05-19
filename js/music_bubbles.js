@@ -11,8 +11,8 @@
         initialize : function (options) {
             var defaults = {
                 $elem : undefined,
-                width : 400,
-                height : 300
+                width : 1024,
+                height : 768
             };
             options = $.extend(defaults, options);
             $.extend(this, options);
@@ -188,8 +188,8 @@
                 x: 0,
                 y: 0,
                 fill: '#fff',
-                startRadius: 10,
-                stopRadius: 30,
+                startRadius: 0.01,
+                stopRadius: 0.03,
                 duration: 1000,
                 startOpacity: 1.0,
                 stopOpacity: 0.0
@@ -223,10 +223,11 @@
                 return;
             }
 
-            var percentage = this.timeAlive / this.duration;
+            var percentage = this.timeAlive / this.duration,
+                radius = this.paper.width * this.interpolate(this.startRadius, this.stopRadius, percentage);
 
             this.circle.attr({
-                r: this.interpolate(this.startRadius, this.stopRadius, percentage),
+                r: radius,
                 'fill-opacity': this.interpolate(this.startOpacity, this.stopOpacity, percentage)
             });
         },
