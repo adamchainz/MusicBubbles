@@ -1,10 +1,10 @@
-/* global Raphael */
+/* global Raphael, buzz */
 
 (function (Class, _, $, Raphael) {
 
     'use strict';
 
-    var CyclicBackground;
+    var CyclicBackground, Bubbler, Bubble;
 
     window.MusicBubbles = Class.create({
 
@@ -27,8 +27,8 @@
 
         initializeElements : function () {
             this.paper = new Raphael(this.$elem[0], this.width, this.height);
-
             this.background = new CyclicBackground({paper : this.paper});
+            this.bubbler = new Bubbler({paper : this.paper});
         },
 
         animate : function () {
@@ -36,6 +36,7 @@
                 frameDiff = now - this.lastFrame;
 
             this.background.update(frameDiff);
+            this.bubbler.update(frameDiff);
 
             this.lastFrame = now;
             window.requestAnimationFrame(this._animate);
@@ -71,6 +72,104 @@
             this.rect.attr({
                 fill: Raphael.hsb(this.hue, this.saturation, this.lightness)
             });
+        }
+
+    });
+
+    Bubbler = Class.create({
+
+        initialize : function (options) {
+            var defaults = {
+            };
+            options = $.extend(defaults, options);
+            $.extend(this, options);
+
+            this.timeSince = 0;
+            this.bubbles = [];
+
+            this.loadSounds();
+        },
+
+        loadSounds : function () {
+            var filenames = ['a#2', 'c#3', 'd#3', 'f3', 'a#3', 'c#4', 'd#4', 'f4', 'a#4', 'c#5', 'd#5', 'f5'];
+            this.sounds = [];
+            for (var i = 0; i < filenames.length; i += 1) {
+                var filename = encodeURIComponent('audio/notes/' + filenames[i]);
+                this.sounds.push(
+                    new buzz.sound(filename, {
+                        formats: ['wav'],
+                        preload: true
+                    })
+                );
+            }
+        },
+
+        update : function (frameDiff) {
+            this.timeSince += frameDiff;
+
+            if (_.random(0, 100) === 24) {
+                this.makeNewBubble();
+            }
+
+            for (var i = 0; i < this.bubbles.length; i += 1) {
+                this.bubbles[i].update(frameDiff);
+            }
+        },
+
+        makeNewBubble : function () {
+            var x = _.random(0, this.paper.width),
+                y = _.random(0, this.paper.height),
+                sound = this.soundFor(x),
+                bubble = new Bubble({
+                    paper : this.paper,
+                    sound : sound,
+                    x : x,
+                    y : y
+                });
+
+            this.bubbles.push(bubble);
+        },
+
+        soundFor : function (x) {
+            var sel = Math.floor(
+                (x / (this.paper.width + 1)) * this.sounds.length
+            );
+            return this.sounds[sel];
+        }
+
+    });
+
+    Bubble = Class.create({
+
+        initialize : function (options) {
+            var defaults = {
+                sound: undefined,
+                paper: undefined,
+                x: 0,
+                y: 0,
+                fill: '#fff',
+                radius: 10
+            };
+            options = $.extend(defaults, options);
+            $.extend(this, options);
+
+            this.created = new Date();
+            this.timeAlive = 0;
+            this.createElements();
+        },
+
+        createElements : function () {
+            this.sound.stop().play();
+            this.circle = this.paper.circle(this.x, this.y, this.radius);
+            this.circle.attr({
+                'fill': this.fill,
+                'stroke-width': 0
+            });
+            window.tehcircle = this.circle;
+        },
+
+        update : function (frameDiff) {
+            this.timeAlive += frameDiff;
         }
 
     });
